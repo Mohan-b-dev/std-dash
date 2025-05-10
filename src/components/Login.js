@@ -4,26 +4,47 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../services/firebase";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { FaEnvelope, FaLock } from "react-icons/fa";
+import { FaEnvelope, FaLock, FaUserShield } from "react-icons/fa";
 
 const Login = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
+
+  const ADMIN_CREDENTIALS = {
+    email: "test1@gmail.com",
+    password: "123456",
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleAdminToggle = () => {
+    setIsAdmin(!isAdmin);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Check if trying to login as admin with incorrect credentials
+    if (
+      isAdmin &&
+      (formData.email !== ADMIN_CREDENTIALS.email ||
+        formData.password !== ADMIN_CREDENTIALS.password)
+    ) {
+      toast.error("Invalid admin credentials");
+      return;
+    }
+
     try {
       await signInWithEmailAndPassword(auth, formData.email, formData.password);
       toast.success("Login Success!", {
         autoClose: 3000,
-        onClose: () => navigate("/dashboard"),
+        onClose: () => navigate(isAdmin ? "/admin-dashboard" : "/dashboard"),
       });
     } catch (error) {
       toast.error(error.message);
@@ -32,7 +53,6 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-black p-4 relative overflow-hidden">
-      {/* Cosmic galaxy background with swirling nebulae and moving objects */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(0,255,255,0.15)_0%,_transparent_80%)]">
         <div className="absolute w-[600px] h-[600px] bg-gradient-to-r from-purple-600/30 to-cyan-600/30 rounded-full blur-3xl top-0 left-0 animate-swirl"></div>
         <div className="absolute w-[500px] h-[500px] bg-gradient-to-r from-pink-600/30 to-blue-600/30 rounded-full blur-3xl bottom-0 right-0 animate-swirl delay-2000"></div>
@@ -44,11 +64,10 @@ const Login = () => {
       </div>
 
       <div className="bg-black/80 backdrop-blur-3xl p-12 rounded-3xl w-full max-w-lg border border-cyan-500/40 shadow-[0_0_50px_rgba(0,255,255,0.5)] transition-all hover:shadow-[0_0_70px_rgba(0,255,255,0.7)] hover:-translate-y-2 relative overflow-hidden group">
-        {/* Holographic prism overlay with parallax */}
-        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/15 via-pink-500/15 to-purple-500/15 opacity-60 animate-gradient-x group-hover:-translate-x-1 group-hover:-translate-y-1 transition-transform duration-500"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/15 via-pink-500/15 to-purple-500/15 opacity-60 animate-gradient-x group-hover:-translate-x-1 group-hover:-translate-y-1 transition-transform duration-500 pointer-events-none"></div>
         <div className="text-center mb-10">
           <h2 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-pink-400 to-purple-400 animate-text-glow">
-            Login
+            {isAdmin ? "Admin Login" : "Login"}
           </h2>
           <p className="text-gray-100 mt-3 text-lg font-futuristic">
             Access the Cosmic Grid
@@ -57,7 +76,7 @@ const Login = () => {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
               <div className="relative">
                 <FaEnvelope className="text-pink-400 group-hover:animate-orbit-ring transition-all duration-300" />
                 <div className="absolute inset-0 border-2 border-pink-400/50 rounded-full animate-spin-slow group-hover:animate-spin-fast"></div>
@@ -75,7 +94,7 @@ const Login = () => {
           </div>
 
           <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
               <div className="relative">
                 <FaLock className="text-purple-400 group-hover:animate-orbit-ring transition-all duration-300" />
                 <div className="absolute inset-0 border-2 border-purple-400/50 rounded-full animate-spin-slow group-hover:animate-spin-fast"></div>
@@ -90,6 +109,18 @@ const Login = () => {
               className="w-full pl-10 pr-3 py-3 bg-black/30 border border-purple-500/50 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:border-purple-400 transition-all duration-300 font-futuristic animate-neon-trail"
               required
             />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <label className="flex items-center text-gray-200 font-futuristic cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isAdmin}
+                onChange={handleAdminToggle}
+                className="mr-2 accent-cyan-400 cursor-pointer"
+              />
+              Admin Login
+            </label>
           </div>
 
           <button
@@ -109,17 +140,16 @@ const Login = () => {
         <div className="mt-6 text-center">
           <p className="text-gray-200 text-sm font-futuristic">
             Don't have an account?{" "}
-            <button
-              onClick={() => navigate("/signup")}
-              className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors duration-300"
+            <span
+              onClick={() => navigate("/")}
+              className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors duration-300 cursor-pointer"
             >
               Sign Up
-            </button>
+            </span>
           </p>
         </div>
       </div>
 
-      {/* Tailwind CSS animation keyframes */}
       <style>
         {`
           @keyframes swirl {
